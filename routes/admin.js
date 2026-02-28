@@ -1,17 +1,9 @@
-
 const express = require('express');
 const router = express.Router();
-const rateLimit = require('express-rate-limit');
 const Admin = require('../models/Admin');
 const { protect, generateToken } = require('../middleware/auth');
 
-const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10,
-  message: { success: false, message: 'Too many login attempts. Please wait 15 minutes.' }
-});
-
-router.post('/login', loginLimiter, async (req, res) => {
+router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
     if (!username || !password) return res.status(400).json({ success: false, message: 'Username and password required.' });
@@ -43,8 +35,10 @@ router.get('/setup', async (req, res) => {
     if (existing) return res.json({ success: true, message: 'Admin already exists!', username: existing.username });
     const admin = new Admin({ username: USERNAME.toLowerCase(), password: PASSWORD, role: 'superadmin', isActive: true });
     await admin.save();
-    res.json({ success: true, message: '✅ Admin created! Remove SETUP_SECRET from env now.', username: USERNAME });
+    res.json({ success: true, message: '✅ Admin created!', username: USERNAME });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 });
+
+module.exports = router;
